@@ -1,0 +1,8 @@
+{% extends 'layout.html' %}
+{% block title %}About{% endblock %}
+{% block body %}
+{{ super() }}
+<h1>About Us</h1>
+<p>We are part of the CS314 project!</p>
+<img src="{{url_for('static',filename='img/img1.jpg') }}">
+{% endblock %}
