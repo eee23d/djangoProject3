@@ -7,38 +7,51 @@ from django.contrib.auth.forms import UserCreationForm
 from .forms import CreateUserForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.decorators import login_required
 
 
 #string-->http response
+@login_required(login_url='loginPage')
 def index(request):
     return render(request,['wingsApp/index.html'])
 
 def register(request):
-    form=CreateUserForm()
-    if request.method=='POST':
-        form=CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Account was created for '+form.cleaned_data.get('username'))
-            return redirect('loginPage')
-
-    context={'form':form}
-    return render(request,'wingsApp/register.html',context)
+    if request.user.is_authenticated:
+        return redirect('index')
+    else:
+        form=CreateUserForm()
+        if request.method=='POST':
+            form=CreateUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request,'Account was created for '+form.cleaned_data.get('username'))
+                return redirect('loginPage')
+        context={'form':form}
+        return render(request,'wingsApp/register.html',context)
 
 
 
 
 def loginPage(request):
-    if request.method=='POST':
-        #taking thr value of these fields
-        fname=request.POST.get('fname')
-        lname=request.POST.get('lname')
-        user =authenticate(request,first_name=fname,last_name=lname)
-        if user is not None:
-            login(request,user)
-            return redirect('index')
-        else:
-            messages.info(request,'email or password is incorrect')
+    if request.user.is_authenticated:
+        return redirect('index')
+    else:
+        if request.method=='POST':
+            #taking thr value of these fields
+            username=request.POST.get('username')
+            password=request.POST.get('password')
+            print(username+" "+password)
+            user =authenticate(request,username=username,password=password)
+            print(user)
+            if user is not None:
+                login(request,user)
+                return redirect('index')
+            else:
+                messages.info(request,'username or password is incorrect')
 
-    context={}
-    return render(request,['wingsApp/login.html'],context)
+        context={}
+        return render(request,['wingsApp/login.html'],context)
+
+def logoutUser(request):
+    logout(request)
+    return redirect('loginPage')
